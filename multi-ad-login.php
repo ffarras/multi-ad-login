@@ -40,7 +40,7 @@ if ( file_exists( MADL_PLUGIN_DIR . 'includes/lib/AdLdap.php' ) ) {
 
 require_once MADL_PLUGIN_DIR . 'includes/class-madl-ldap-handler.php';
 require_once MADL_PLUGIN_DIR . 'includes/class-madl-auth.php';
-require_once MADL_PLUGIN_DIR . 'includes/class-madl-ldap-data.php';
+// require_once MADL_PLUGIN_DIR . 'includes/class-madl-ldap-data.php';
 
 if ( is_admin() ) {
 	require_once MADL_PLUGIN_DIR . 'admin/class-madl-admin-settings.php';
