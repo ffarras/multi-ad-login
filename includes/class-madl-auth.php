@@ -112,28 +112,13 @@ class MADL_Auth
         MADL_Logger::log("get_or_create_wp_user() called with ad_user_info: " . print_r(MADL_Ldap_Handler::sanitize_user_info_for_log($ad_user_info), true), 'DEBUG');
 
         // Extract standard attributes - AdLdap returns arrays for attributes
-        // $sam_account_name = MADL_Ldap_Data::get_attribute($ad_user_info, 'samaccountname');
-        // $user_principal_name = MADL_Ldap_Data::get_attribute($ad_user_info, 'userprincipalname');
-        // $email = MADL_Ldap_Data::get_attribute($ad_user_info, 'mail');
-        // $first_name = MADL_Ldap_Data::get_attribute($ad_user_info, 'givenname', '');
-        // $last_name = MADL_Ldap_Data::get_attribute($ad_user_info, 'sn', '');
-        // $display_name = MADL_Ldap_Data::get_attribute($ad_user_info, 'displayname', '');
-        // $object_guid = MADL_Ldap_Data::get_attribute($ad_user_info, 'objectguid');
-        // $sam_account_name = isset($ad_user_info['samaccountname'][0]) ? $ad_user_info['samaccountname'][0] : null;
-        // $user_principal_name = isset($ad_user_info['userprincipalname'][0]) ? $ad_user_info['userprincipalname'][0] : null;
-        // $email = isset($ad_user_info['mail'][0]) ? $ad_user_info['mail'][0] : null;
-        // $first_name = isset($ad_user_info['givenname'][0]) ? $ad_user_info['givenname'][0] : '';
-        // $last_name = isset($ad_user_info['sn'][0]) ? $ad_user_info['sn'][0] : '';
-        // $display_name = isset($ad_user_info['displayname'][0]) ? $ad_user_info['displayname'][0] : '';
-        // $object_guid = isset($ad_user_info['objectguid'][0]) ? $this->format_guid($ad_user_info['objectguid'][0]) : null;
-
         $sam_account_name = isset($ad_user_info['samaccountname']) ? $ad_user_info['samaccountname'] : null;  //  <---  CHANGED
-    $user_principal_name = isset($ad_user_info['userprincipalname']) ? $ad_user_info['userprincipalname'] : null;  //  <---  CHANGED
-    $email = isset($ad_user_info['mail']) ? $ad_user_info['mail'] : null;  //  <---  CHANGED
-    $first_name = isset($ad_user_info['givenname']) ? $ad_user_info['givenname'] : '';  //  <---  CHANGED
-    $last_name = isset($ad_user_info['sn']) ? $ad_user_info['sn'] : '';  //  <---  CHANGED
-    $display_name = isset($ad_user_info['displayname']) ? $ad_user_info['displayname'] : '';  //  <---  CHANGED
-    $object_guid = isset($ad_user_info['objectguid']) ? $this->format_guid($ad_user_info['objectguid']) : null;  //  <---  CHANGED
+        $user_principal_name = isset($ad_user_info['userprincipalname']) ? $ad_user_info['userprincipalname'] : null;  //  <---  CHANGED
+        $email = isset($ad_user_info['mail']) ? $ad_user_info['mail'] : null;  //  <---  CHANGED
+        $first_name = isset($ad_user_info['givenname']) ? $ad_user_info['givenname'] : '';  //  <---  CHANGED
+        $last_name = isset($ad_user_info['sn']) ? $ad_user_info['sn'] : '';  //  <---  CHANGED
+        $display_name = isset($ad_user_info['displayname']) ? $ad_user_info['displayname'] : '';  //  <---  CHANGED
+        $object_guid = isset($ad_user_info['objectguid']) ? $this->format_guid($ad_user_info['objectguid']) : null;  //  <---  CHANGED
 
 
         if (empty($sam_account_name)) {
@@ -147,6 +132,8 @@ class MADL_Auth
         // Prefer mail, fallback to UPN for email if mail is empty
         $wp_email = !empty($email) ? $email : $user_principal_name;
 
+        // **Use email/UPN as WordPress username**
+        $wp_username = $wp_email;
 
         // Try to find user by AD GUID first (most reliable)
         $wp_user = null;
@@ -163,11 +150,11 @@ class MADL_Auth
             }
         }
 
-        // If not found by GUID, try by sAMAccountName (as login)
+        // If not found by GUID, try by email (which is now WP username)
         if (! $wp_user) {
-            $wp_user = get_user_by('login', $sam_account_name);
+            $wp_user = get_user_by('login', $wp_username);
             if ($wp_user) {
-                MADL_Logger::log("Found existing WP user ID {$wp_user->ID} by login '{$sam_account_name}'.", 'INFO');
+                MADL_Logger::log("Found existing WP user ID {$wp_user->ID} by login '{$wp_username}'.", 'INFO');
             }
         }
 
@@ -180,7 +167,7 @@ class MADL_Auth
         }
 
         $user_data = array(
-            'user_login'    => $sam_account_name,
+            'user_login'    => $wp_username,
             'user_email'    => $wp_email,
             'first_name'    => $first_name,
             'last_name'     => $last_name,
