@@ -112,13 +112,13 @@ class MADL_Auth
         MADL_Logger::log("get_or_create_wp_user() called with ad_user_info: " . print_r(MADL_Ldap_Handler::sanitize_user_info_for_log($ad_user_info), true), 'DEBUG');
 
         // Extract standard attributes - AdLdap returns arrays for attributes
-        $sam_account_name = isset($ad_user_info['samaccountname']) ? $ad_user_info['samaccountname'] : null;  //  <---  CHANGED
-        $user_principal_name = isset($ad_user_info['userprincipalname']) ? $ad_user_info['userprincipalname'] : null;  //  <---  CHANGED
-        $email = isset($ad_user_info['mail']) ? $ad_user_info['mail'] : null;  //  <---  CHANGED
-        $first_name = isset($ad_user_info['givenname']) ? $ad_user_info['givenname'] : '';  //  <---  CHANGED
-        $last_name = isset($ad_user_info['sn']) ? $ad_user_info['sn'] : '';  //  <---  CHANGED
-        $display_name = isset($ad_user_info['displayname']) ? $ad_user_info['displayname'] : '';  //  <---  CHANGED
-        $object_guid = isset($ad_user_info['objectguid']) ? $this->format_guid($ad_user_info['objectguid']) : null;  //  <---  CHANGED
+        $sam_account_name = isset($ad_user_info['samaccountname']) ? $ad_user_info['samaccountname'] : null;
+        $user_principal_name = isset($ad_user_info['userprincipalname']) ? $ad_user_info['userprincipalname'] : null;
+        $email = isset($ad_user_info['mail']) ? $ad_user_info['mail'] : null;
+        $first_name = isset($ad_user_info['givenname']) ? $ad_user_info['givenname'] : '';
+        $last_name = isset($ad_user_info['sn']) ? $ad_user_info['sn'] : '';
+        $display_name = isset($ad_user_info['displayname']) ? $ad_user_info['displayname'] : '';
+        $object_guid = isset($ad_user_info['objectguid']) ? $this->format_guid($ad_user_info['objectguid']) : null;
 
 
         if (empty($sam_account_name)) {
@@ -172,7 +172,6 @@ class MADL_Auth
             'first_name'    => $first_name,
             'last_name'     => $last_name,
             'display_name'  => !empty($display_name) ? $display_name : $sam_account_name,
-            'user_pass'     => $password, // Set password - AD is master, but WP needs one.
             'role'          => get_option('default_role', 'subscriber'), // Or make this configurable
         );
 
@@ -184,6 +183,7 @@ class MADL_Auth
         } else {
             // Create new user
             MADL_Logger::log("Creating new WP user for AD user '{$sam_account_name}'.", 'INFO');
+            $user_data['user_pass'] = wp_generate_password(32, true, true);
             $user_id = wp_insert_user($user_data);
             if (is_wp_error($user_id)) {
                 MADL_Logger::log("Error creating WP user for '{$sam_account_name}': " . $user_id->get_error_message(), 'ERROR');
